@@ -2,7 +2,8 @@ streamlit
 openpyxl
 pandas
 numpy==1.23.5
-pmdarima==2.3
+pmdarima==2.0.3
+Cython
 scikit-learn
 statsmodels
 arch
