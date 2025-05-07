@@ -22,7 +22,12 @@ from sklearn.preprocessing import MinMaxScaler
 from pmdarima import auto_arima
 
 st.set_page_config(layout="wide", page_title="Konversi Pinjaman")
+
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("Silakan login terlebih dahulu di halaman Home.")
+    st.stop()
 st.title("Data Market")
+
 
 # Warna untuk plot
 color_curr = {'USDIDR': 'Red', 'DXY': 'Blue', 'USDJPY': 'Black', 'JPYIDR': 'Purple'}
@@ -52,28 +57,38 @@ if "columns" not in st.session_state:
 if "tanggal_referensi" not in st.session_state:
     st.session_state.tanggal_referensi = "2024-10-04"
 
-data_file1 = st.file_uploader("Upload File Data Historis", type=['xlsx'])
-if data_file1:
-    st.session_state["data_file1"] = data_file1
-    data_kurs        = baca_data(data_file1, "Kurs JPY")
-    data_yield       = baca_data(data_file1, "Yield")
-    data_policyrate  = baca_data(data_file1,"Rate Bank Central")
-    data_GI = baca_data(data_file1, "Rekap JPY")
-    
-    data_kurs['Dates']       = pd.to_datetime(data_kurs['Dates'])
-    data_yield['Dates']      = pd.to_datetime(data_yield['Dates'])
-    data_policyrate['Dates'] = pd.to_datetime(data_policyrate['Dates'])
-    
-    st.session_state["data_kurs"] = data_kurs
-    st.session_state["data_yield"] = data_yield
-    st.session_state["data_policyrate"] = data_policyrate
-    st.session_state["data_GI"] = data_GI
-    st.session_state["as_of"] = data_kurs['Dates'].max()
+#data_file1 = st.file_uploader("Upload File Data Historis", type=['xlsx'])
+
+# Path ke file Excel di folder pages
+file_path = "pages/Data Historis - Monitoring Timing Konversi Pinjaman.xlsx"
+
+# Fungsi baca data dari sheet
+def baca_data(file_path, sheet_name):
+    return pd.read_excel(file_path, sheet_name=sheet_name)
 
 
 
-as_of = st.date_input("As of (Pilih Tanggal)", value=st.session_state.as_of or datetime.today().date())
-st.session_state.as_of = pd.Timestamp(as_of)
+data_kurs        = baca_data(file_path, "Kurs JPY")
+data_yield       = baca_data(file_path, "Yield")
+data_policyrate  = baca_data(file_path,"Rate Bank Central")
+data_GI = baca_data(file_path, "Rekap JPY")
+
+data_kurs['Dates']       = pd.to_datetime(data_kurs['Dates'])
+data_yield['Dates']      = pd.to_datetime(data_yield['Dates'])
+data_policyrate['Dates'] = pd.to_datetime(data_policyrate['Dates'])
+
+st.session_state["data_kurs"] = data_kurs
+st.session_state["data_yield"] = data_yield
+st.session_state["data_policyrate"] = data_policyrate
+st.session_state["data_GI"] = data_GI
+st.session_state["as_of"] = data_kurs['Dates'].max()
+
+
+# Tampilkan info data terakhir
+as_of_str = data_kurs['Dates'].iloc[-1].strftime("%d %B %Y")
+st.info(f"📅 Data terakhir yang tersedia adalah data per tanggal **{as_of_str}**")
+
+
 
 # Tab Navigation
 tab1, tab2, tab3 = st.tabs(["Nilai Tukar", "Yield", "Suku Bunga Bank Sentral"])
@@ -81,6 +96,8 @@ tab1, tab2, tab3 = st.tabs(["Nilai Tukar", "Yield", "Suku Bunga Bank Sentral"])
 # Tab 1: Nilai Tukar
 if "data_kurs" in st.session_state:
     with tab1:
+        as_of = st.date_input("As of (Pilih Tanggal)", value=st.session_state.as_of or datetime.today().date())
+        st.session_state.as_of = pd.Timestamp(as_of)
         data_kurs = st.session_state["data_kurs"]
         data_kurs = data_kurs[data_kurs['Dates'] <= st.session_state.as_of]
         data_GI = st.session_state["data_GI"]
@@ -130,16 +147,18 @@ if "data_kurs" in st.session_state:
                 data_kurs['Dates'] = pd.to_datetime(data_kurs['Dates'])
 
                 # Gabungkan berdasarkan tanggal yang sama persis
+                
                 data_GI = data_GI.merge(
                     data_kurs[['Dates', 'USDJPY']].rename(columns={'Dates': 'Tanggal Konversi Awal', 'USDJPY': 'Kurs USDJPY'}),
                     on='Tanggal Konversi Awal',
                     how='left'
                     )
                 #tanggal amatan
-                st.session_state.tanggal_akhir = st.text_input("Input Tanggal Pengamatan (YYYY-MM-DD):", 
-                    st.session_state.get("tanggal_akhir", "2025-03-05")
-                    )
-                tanggal_input = pd.to_datetime(st.session_state.tanggal_akhir)
+                as_of_str_ = data_kurs['Dates'].iloc[-1].strftime("%Y-%m-%d") 
+                #st.write(as_of_str_)
+                tanggal_akhir = st.text_input("Input Tanggal Pengamatan (YYYY-MM-DD):", 
+                                               value=(as_of_str_))
+                tanggal_input = pd.to_datetime(tanggal_akhir)
                 kurs_usdjpy = data_kurs.loc[data_kurs['Dates'] == tanggal_input, 'USDJPY'].values
 
                 #----scatter plot ----
