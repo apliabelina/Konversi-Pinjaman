@@ -1,3 +1,11 @@
-openpyxl
 streamlit
+openpyxl
 pandas
+numpy
+Pillow
+altair
+plotly
+statsmodels
+prophet
+scikit-learn
+pmdarima
