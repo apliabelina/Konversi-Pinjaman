@@ -11,3 +11,4 @@ prophet
 plotly
 altair
 Pillow
+seaborn
