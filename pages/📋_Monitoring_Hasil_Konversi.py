@@ -361,14 +361,15 @@ with tab2:
             st.plotly_chart(fig422, theme="streamlit", use_container_width=True)
 
         # Data berdasarkan Loan ID
-        
-        ef_loanid = st.session_state.merge_all_[['Loan-ID', "Total_saving", "year", 'Mata Uang Tujuan']]
-        ef_loanid['Loan-ID'] = ef_loanid['Loan-ID'].astype(str)
-        ef_loanid_ = ef_loanid.groupby(['Loan-ID', 'Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
+        #st.write(st.session_state.merge_all_)
+        ef_loanid = st.session_state.merge_all_[['Kode Pinjaman', "Total_saving", "year", 'Mata Uang Tujuan']]
+        ef_loanid['Kode Pinjaman'] = ef_loanid['Kode Pinjaman'].astype(str)
+
+        ef_loanid_ = ef_loanid.groupby(['Kode Pinjaman', 'Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
         st.session_state.ef_loanid_sorted = ef_loanid_.sort_values(by='Total_saving', ascending=False)
 
 
-        fig43 = px.bar(st.session_state.ef_loanid_sorted, x='Loan-ID', y='Total_saving', color='Mata Uang Tujuan',
+        fig43 = px.bar(st.session_state.ef_loanid_sorted, x='Kode Pinjaman', y='Total_saving', color='Mata Uang Tujuan',
             color_discrete_map=color_type1, title='Estimasi Efisiensi by Loan ID'
         )
         st.plotly_chart(fig43, theme="streamlit", use_container_width=True)
