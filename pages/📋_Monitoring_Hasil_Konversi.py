@@ -14,6 +14,9 @@ import plotly.io as pio
 
 #set layout
 st.set_page_config(layout="wide", page_title="Monitoring Konversi Pinjaman")
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("Silakan login terlebih dahulu di halaman Home.")
+    st.stop()
 #im = Image.open('LOGO.png')
 col11, col12 = st.columns([9,1])
 with col11:
@@ -32,49 +35,50 @@ def baca_data(x, y):
     return data
 
 # Mengunggah file
-coldata1, coldata2 = st.columns(2)
-with coldata1:
-    st.session_state.data_file1 = st.file_uploader("Upload File Realisasi", type=['xlsx'])
 
-with coldata2:
-    st.session_state.data_file2 = st.file_uploader("Upload File Estimasi", type=['xlsx'])
+file_path1 = "pages/Realisasi Bunga dan Pokok.xlsx"
+file_path2 = "pages/Estimasi Efisiensi Konversi Pinjaman.xlsx"
+# Fungsi baca data dari sheet
+def baca_data(file_path, sheet_name):
+    return pd.read_excel(file_path, sheet_name=sheet_name)
 
-# Memastikan file sudah diunggah sebelum membaca data
-if st.session_state.data_file1 is not None:
-    st.session_state.data_pokok = baca_data(st.session_state.data_file1, "Pokok")
-    st.session_state.data_bunga = baca_data(st.session_state.data_file1, "Bunga")
-    st.session_state.data_GI = baca_data(st.session_state.data_file1, "GI")
+
+st.session_state.data_pokok = baca_data(file_path1, "Pokok")
+st.session_state.data_bunga = baca_data(file_path1, "Bunga")
+st.session_state.data_GI = baca_data(file_path1, "GI")
+st.session_state.data_GI_ = baca_data(file_path1, "GI_")
     
 # Tab Navigation
 tab1, tab2 = st.tabs(["Realisasi Konversi", "Estimasi Efisiensi"])
 with tab1 :
-    st.session_state.data_GI["Tahun"] = pd.to_datetime(st.session_state.data_GI["Tanggal Konversi"], dayfirst=True).dt.year.astype(str)
+    data_GI_ = st.session_state.data_GI_
+    data_GI_["Tahun"] = pd.to_datetime(data_GI_['Tanggal Konversi'], dayfirst=True).dt.year.astype(str)
 
     # Convert to string
-    st.session_state.data_GI["Kode Pinjaman"]     = st.session_state.data_GI["Kode Pinjaman"].astype(str)
-    st.session_state.data_GI["Mata Uang Akhir"]   = st.session_state.data_GI["Mata Uang Akhir"].astype(str)
-    st.session_state.data_GI["Keterangan"] = st.session_state.data_GI["Keterangan"].astype(str)
+    data_GI_["Loan-ID"]     = data_GI_["Loan-ID"].astype(str)
+    data_GI_["Mata Uang Tujuan"]   = data_GI_["Mata Uang Tujuan"].astype(str)
+    data_GI_["Keterangan"] = data_GI_["Keterangan"].astype(str)
 
     # ----- Urutan label -----
-    curr_labels  = sorted(st.session_state.data_GI["Mata Uang Akhir"].unique())
-    tahun_labels = sorted(st.session_state.data_GI["Tahun"].unique()) 
-    loan_labels  = sorted(st.session_state.data_GI["Kode Pinjaman"].unique())
-    ket_labels   = sorted(st.session_state.data_GI["Keterangan"].unique())
+    curr_labels  = sorted(data_GI_["Mata Uang Tujuan"].unique())
+    tahun_labels = sorted(data_GI_["Tahun"].unique()) 
+    loan_labels  = sorted(data_GI_["Loan-ID"].unique())
+    ket_labels   = sorted(data_GI_["Keterangan"].unique())
 
     ordered_labels = curr_labels + tahun_labels + loan_labels + ket_labels
     node_indices = {label: i for i, label in enumerate(ordered_labels)}
 
     # ----- Link generator -----
     def make_links(src_col, tgt_col):
-        grouped = st.session_state.data_GI.groupby([src_col, tgt_col]).size().reset_index(name="Value")
+        grouped = data_GI_.groupby([src_col, tgt_col]).size().reset_index(name="Value")
         grouped["source"] = grouped[src_col].map(node_indices)
         grouped["target"] = grouped[tgt_col].map(node_indices)
         return grouped[["source", "target", "Value"]]
    
     # Buat link sesuai urutan baru
-    links_curr_tahun = make_links("Mata Uang Akhir", "Tahun")
-    links_tahun_loan = make_links("Tahun", "Kode Pinjaman")
-    links_loan_ket = make_links("Kode Pinjaman", "Keterangan")
+    links_curr_tahun = make_links("Mata Uang Tujuan", "Tahun")
+    links_tahun_loan = make_links("Tahun", "Loan-ID")
+    links_loan_ket = make_links("Loan-ID", "Keterangan")
 
     # Gabungkan semua link
     all_links = pd.concat([links_curr_tahun, links_tahun_loan, links_loan_ket], ignore_index=True)
@@ -180,31 +184,27 @@ with tab1 :
     st.plotly_chart(fig2)
 
 with tab2:
-    if st.session_state.data_file1 is not None:
-        st.session_state.data_pokok = baca_data(st.session_state.data_file1, "Pokok")
-        st.session_state.data_bunga = baca_data(st.session_state.data_file1, "Bunga")
-        st.session_state.data_GI = baca_data(st.session_state.data_file1, "GI")
-        st.session_state.data_GI_ = baca_data(st.session_state.data_file1, "GI_")
-        
-        # AS OF
-        st.session_state.as_of_ = baca_data(st.session_state.data_file1, "as_of")
-        st.session_state.as_of_['Bulan'] = pd.to_datetime(st.session_state.as_of_['Bulan'], format='%d/%m/%Y %H:%M')
-        st.session_state.as_of_['Bulan_'] = st.session_state.as_of_['Bulan'].dt.strftime('%b %y')
-        
-        default_index = len(st.session_state.as_of_['Bulan_']) - 1
-        st.session_state.as_of__ = st.selectbox('As of:', st.session_state.as_of_['Bulan_'], index=default_index)
-        
-        selected_index = st.session_state.as_of_['Bulan_'].tolist().index(st.session_state.as_of__)
-        st.session_state.as_of = st.session_state.as_of_['As_of'].iloc[selected_index]
-        
-        # Filter data GI berdasarkan tanggal konversi
-        st.session_state.data_GI['Tanggal Konversi'] = pd.to_datetime(st.session_state.data_GI['Tanggal Konversi'])
-        st.session_state.data_GI = st.session_state.data_GI[st.session_state.data_GI['Tanggal Konversi'] <= st.session_state.as_of]
-        
-        st.session_state.data_GI['Year'] = st.session_state.data_GI['Tanggal Konversi'].dt.year
-        #st.session_state.data_GI["Bunga Konversi"] = st.session_state.data_GI["Bunga Konversi"] * 100
-        
-        st.session_state.loan_id = st.session_state.data_GI_['Loan_ID'].tolist()
+    st.session_state.data_GI_ = baca_data(file_path1, "GI_")
+    
+    # AS OF
+    st.session_state.as_of_ = baca_data(file_path1, "as_of")
+    st.session_state.as_of_['Bulan'] = pd.to_datetime(st.session_state.as_of_['Bulan'], format='%d/%m/%Y %H:%M')
+    st.session_state.as_of_['Bulan_'] = st.session_state.as_of_['Bulan'].dt.strftime('%b %y')
+    
+    default_index = len(st.session_state.as_of_['Bulan_']) - 1
+    st.session_state.as_of__ = st.selectbox('As of:', st.session_state.as_of_['Bulan_'], index=default_index)
+    
+    selected_index = st.session_state.as_of_['Bulan_'].tolist().index(st.session_state.as_of__)
+    st.session_state.as_of = st.session_state.as_of_['As_of'].iloc[selected_index]
+    
+    # Filter data GI berdasarkan tanggal konversi
+    st.session_state.data_GI['Execution Date'] = pd.to_datetime(st.session_state.data_GI['Execution Date'])
+    st.session_state.data_GI = st.session_state.data_GI[st.session_state.data_GI['Execution Date'] <= st.session_state.as_of]
+    
+    st.session_state.data_GI['Year'] = st.session_state.data_GI['Execution Date'].dt.year
+    #st.session_state.data_GI["Bunga Konversi"] = st.session_state.data_GI["Bunga Konversi"] * 100
+    st.session_state.data_GI['Loan-ID'] = st.session_state.data_GI['Loan-ID'].astype(str)
+    st.session_state.loan_id       = st.session_state.data_GI['Loan-ID'].tolist()
     
     # Tampilkan expander dengan data historis
     with st.expander("ESTIMASI EFISIENSI"):
@@ -212,21 +212,25 @@ with tab2:
         
         # Simpan subset_data_pokok dalam session_state jika belum ada
         if "subset_data_pokok" not in st.session_state:
-            st.session_state.subset_data_pokok = st.session_state.data_pokok[st.session_state.data_pokok["LOAN_ID"].isin(st.session_state.loan_id)]
+            st.session_state.subset_data_pokok = st.session_state.data_pokok.copy()
             st.session_state.subset_data_pokok['PAYMENT_DATE'] = pd.to_datetime(st.session_state.subset_data_pokok['PAYMENT_DATE'])
             st.session_state.subset_data_pokok = st.session_state.subset_data_pokok[st.session_state.subset_data_pokok['PAYMENT_DATE'] <= st.session_state.as_of]
             st.session_state.subset_data_pokok = st.session_state.subset_data_pokok.rename(columns={'AMT_IDR': 're_pokok'})
 
         if "subset_data_bunga" not in st.session_state:
-            st.session_state.subset_data_bunga = st.session_state.data_bunga[st.session_state.data_bunga["LOAN_ID"].isin(st.session_state.loan_id)]
+            st.session_state.subset_data_bunga = st.session_state.data_bunga.copy() 
             st.session_state.subset_data_bunga['DATE_PAYMENT'] = pd.to_datetime(st.session_state.subset_data_bunga['DATE_PAYMENT'])
             st.session_state.subset_data_bunga = st.session_state.subset_data_bunga[st.session_state.subset_data_bunga['DATE_PAYMENT'] <= st.session_state.as_of]
             st.session_state.subset_data_bunga = st.session_state.subset_data_bunga.rename(columns={'AMT_IDR': 're_bunga'})
 
         # Summary by year
         st.session_state.subset_data_pokok_ = st.session_state.subset_data_pokok.groupby(['year', 'LOAN_ID', 'Kode'])['re_pokok'].sum().reset_index()
+        st.session_state.subset_data_pokok_['LOAN_ID'] = st.session_state.subset_data_pokok_['LOAN_ID'].astype(str).str[:6]
         st.session_state.subset_data_bunga_ = st.session_state.subset_data_bunga.groupby(['year', 'LOAN_ID', 'Kode'])['re_bunga'].sum().reset_index()
-
+        st.session_state.subset_data_bunga_['LOAN_ID'] = st.session_state.subset_data_bunga_['LOAN_ID'].astype(str).str[:6]
+        
+        st.session_state.subset_data_bunga_['Kode'] = st.session_state.subset_data_bunga_['Kode'].astype(str)
+        st.session_state.subset_data_pokok_['Kode'] = st.session_state.subset_data_pokok_['Kode'].astype(str)
         st.session_state.merge_realisasi = pd.merge(st.session_state.subset_data_pokok_, st.session_state.subset_data_bunga_, on='Kode', how='outer')
 
         st.session_state.merge_realisasi['year_x'] = st.session_state.merge_realisasi['year_x'].fillna(st.session_state.merge_realisasi['year_y'])
@@ -247,25 +251,28 @@ with tab2:
         st.session_state.merged_es = pd.DataFrame()
         for value in st.session_state.loan_id:
             sheet_name = f"{value}"
-            print(sheet_name)
-            data = pd.read_excel('Estimasi Pembayaran.xlsx', sheet_name=sheet_name)
+            data = pd.read_excel(file_path2, sheet_name=sheet_name)
             data['Date Schedule'] = pd.to_datetime(data['Date Schedule'])
             data['Year'] = data['Date Schedule'].dt.year
             data = data[data['Date Schedule'] <= st.session_state.as_of]
-            grouped_data = data.groupby(['Year', 'Loan_ID']).agg({'Principal original (in IDR)': 'sum', 'Bunga LIBOR in IDR (est)': 'sum'}).reset_index()
+            data['Loan-ID']      = value
+            grouped_data = data.groupby(['Year', 'Loan-ID']).agg({'Principal original (in IDR)': 'sum', 'Bunga LIBOR in IDR (est)': 'sum'}).reset_index()
             
             st.session_state.merged_es = pd.concat([st.session_state.merged_es, grouped_data], ignore_index=True)
 
-        st.session_state.merged_es['Kode'] = st.session_state.merged_es['Loan_ID'].astype(str) + st.session_state.merged_es['Year'].astype(str)
+        st.session_state.merged_es['Kode'] = st.session_state.merged_es['Loan-ID'].astype(str) + st.session_state.merged_es['Year'].astype(str)
         st.session_state.merged_es = st.session_state.merged_es.rename(columns={'Bunga LIBOR in IDR (est)': 'es_bunga', "Principal original (in IDR)": 'es_pokok'})
-
+        
         # Merge semua data
+        st.session_state.merged_es['Kode'] = st.session_state.merged_es['Kode'].astype(str)
+        st.session_state.merged_re['Kode'] = st.session_state.merged_re['Kode'].astype(str)
+ 
         st.session_state.merge_all = pd.merge(st.session_state.merged_re, st.session_state.merged_es, on='Kode', how='outer')
 
         st.session_state.merge_all['year'] = st.session_state.merge_all['year'].fillna(st.session_state.merge_all['Year'])
         st.session_state.merge_all['Year'] = st.session_state.merge_all['Year'].fillna(st.session_state.merge_all['year'])
-        st.session_state.merge_all['LOAN_ID'] = st.session_state.merge_all['LOAN_ID'].fillna(st.session_state.merge_all['Loan_ID'])
-        st.session_state.merge_all['Loan_ID'] = st.session_state.merge_all['Loan_ID'].fillna(st.session_state.merge_all['LOAN_ID'])
+        st.session_state.merge_all['LOAN_ID'] = st.session_state.merge_all['LOAN_ID'].fillna(st.session_state.merge_all['Loan-ID'])
+        st.session_state.merge_all['Loan-ID'] = st.session_state.merge_all['Loan-ID'].fillna(st.session_state.merge_all['LOAN_ID'])
         st.session_state.merge_all['re_pokok'] = st.session_state.merge_all['re_pokok'].fillna(0)
         st.session_state.merge_all['re_bunga'] = st.session_state.merge_all['re_bunga'].fillna(0)
         st.session_state.merge_all['es_pokok'] = st.session_state.merge_all['es_pokok'].fillna(0)
@@ -276,7 +283,10 @@ with tab2:
         st.session_state.merge_all['Total_saving'] = (st.session_state.merge_all['es_pokok'] - st.session_state.merge_all['re_pokok']) + \
                                                     (st.session_state.merge_all['es_bunga'] - st.session_state.merge_all['re_bunga'])
 
-        st.session_state.merge_all_ = pd.merge(st.session_state.merge_all, st.session_state.data_GI_, on='Loan_ID', how='left')
+        cols_merge_all = st.session_state.merge_all.columns
+        cols_data_GI = st.session_state.data_GI.columns
+
+        st.session_state.merge_all_ = pd.merge(st.session_state.merge_all, st.session_state.data_GI, on='Loan-ID', how='left')
         st.session_state.Total_saving = st.session_state.merge_all_['Total_saving'].sum() / 1_000_000_000_000
 
         # Perhitungan Saving
@@ -349,15 +359,18 @@ with tab2:
                 title='Breakdown by Year'
             )
             st.plotly_chart(fig422, theme="streamlit", use_container_width=True)
-
+        st.write("merge_all_")
+        st.write(st.session_state.merge_all_)
         # Data berdasarkan Loan ID
-        if "ef_loanid_sorted" not in st.session_state:
-            ef_loanid = st.session_state.merge_all_[['LOAN_ID', "Total_saving", "year", 'Mata Uang Tujuan']]
-            ef_loanid_ = ef_loanid.groupby(['LOAN_ID', 'Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
-            st.session_state.ef_loanid_sorted = ef_loanid_.sort_values(by='Total_saving', ascending=False)
+        
+        ef_loanid = st.session_state.merge_all_[['Loan-ID', "Total_saving", "year", 'Mata Uang Tujuan']]
+        ef_loanid['Loan-ID'] = ef_loanid['Loan-ID'].astype(str)
+        st.write(ef_loanid)
+        ef_loanid_ = ef_loanid.groupby(['Loan-ID', 'Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
+        st.session_state.ef_loanid_sorted = ef_loanid_.sort_values(by='Total_saving', ascending=False)
+        st.write(st.session_state.ef_loanid_sorted)
 
-        fig43 = px.bar(
-            st.session_state.ef_loanid_sorted, x='LOAN_ID', y='Total_saving', color='Mata Uang Tujuan',
+        fig43 = px.bar(st.session_state.ef_loanid_sorted, x='Loan-ID', y='Total_saving', color='Mata Uang Tujuan',
             color_discrete_map=color_type1, title='Estimasi Efisiensi by Loan ID'
         )
         st.plotly_chart(fig43, theme="streamlit", use_container_width=True)
@@ -378,73 +391,5 @@ with tab2:
         
         st.success(f'Report berhasil disimpan: {namafile}')
 
-    with st.expander("HISTORIS NILAI TUKAR DAN INTEREST RATE"):
-        # Simpan data kurs dalam session_state jika belum ada
-        if "data_kurs_" not in st.session_state:
-            st.session_state.data_kurs_ = pd.read_excel('Data Historis_Dashboard Monitoring.xlsx', sheet_name="KURS")
-            #st.write(st.session_state.data_kurs_)
-            st.session_state.data_kurs_['Date'] = pd.to_datetime(st.session_state.data_kurs['Date'])
-            st.session_state.data_kurs_ = st.session_state.data_kurs[st.session_state.data_kurs['Date'] <= st.session_state.as_of]
-            st.session_state.data_kurs_['JPY'] *= 100
-
-        # Plot historis nilai tukar
-        fig4 = go.Figure()
-        for currency in ['JPY', 'USD', 'EUR']:
-            fig4.add_trace(go.Scatter(
-                x=st.session_state.data_kurs_['Date'], 
-                y=st.session_state.data_kurs_[currency], 
-                mode='lines', 
-                name=currency, 
-                line=dict(color=color_type1[currency])
-            ))
-
-        for date in st.session_state.data_GI['Tanggal Konversi']:
-            fig4.add_shape(type="line",
-                    x0=pd.to_datetime(date), y0=0,  
-                    x1=pd.to_datetime(date), y1=19000,
-                    line=dict(color='grey', width=1), name=f'Tanggal Konversi :{date}')
-
-        fig4.layout.update(
-            title_text='Historis Nilai Tukar', 
-            xaxis_rangeslider_visible=True, 
-            yaxis_range=[10000, 20000],
-            xaxis=dict(showline=True, linecolor='black', tickfont=dict(color='black')),
-            yaxis=dict(showline=False, linecolor='black', tickfont=dict(color='black')),
-            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
-        )
-
-        st.plotly_chart(fig4, theme="streamlit", use_container_width=True)
-        fig4.write_image('Historis Nilai Tukar.png', engine='kaleido')
-
-        if "data_rate" not in st.session_state:
-                st.session_state.data_rate = pd.read_excel('Data Historis_Dashboard Monitoring.xlsx', sheet_name="RATE")
-                st.session_state.data_rate['Date'] = pd.to_datetime(st.session_state.data_rate['Date'])
-                st.session_state.data_rate = st.session_state.data_rate[st.session_state.data_rate['Date'] <= st.session_state.as_of]
-            #st.write()
-            # Plot historis interest rate
-        fig5 = px.line(
-            st.session_state.data_rate, 
-            x='Date', 
-            y='US0006M Index', 
-            color='Ket',
-            labels={'Date': 'Date', 'US0006M Index': 'Rate', 'Ket': 'Interest Rate Type'},
-            title='Historical Exchange Rates'
-        )
-
-        for date in st.session_state.data_GI['Tanggal Konversi']:
-            fig5.add_shape(type="line",
-                    x0=pd.to_datetime(date), y0=0,  
-                    x1=pd.to_datetime(date), y1=6,
-                    line=dict(color='grey', width=1), name=f'Tanggal Konversi :{date}')
-        
-        fig5.layout.update(
-            title_text='Historis Interest Rate', 
-            xaxis_rangeslider_visible=True,
-            xaxis=dict(showline=True, linecolor='black', tickfont=dict(color='black'), title=dict(text='Date', font=dict(color='black'))),
-            yaxis=dict(showline=False, linecolor='black', tickfont=dict(color='black'), title=dict(text='Rate', font=dict(color='black'))),
-            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
-        )
-
-        st.plotly_chart(fig5, theme="streamlit", use_container_width=True)
-        fig5.write_image('Historis Interest Rate.png', engine='kaleido')
+    
 
