@@ -99,29 +99,30 @@ with tab1 :
 
     # Warna alur berdasarkan target
     link_colors = [color_map.get(ordered_labels[target], "lightgray") for target in all_links["source"]]
+    coltab11, coltab12 = st.columns([4,2])
+    with coltab11:
+        # Plot Sankey
+        fig = go.Figure(data=[go.Sankey(
+            arrangement="snap",
+            node=dict(
+                pad=1000,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=ordered_labels,
+                color=[color_map.get(label, "lightgray") for label in ordered_labels]
+            ),
+            link=dict(
+                source=all_links["source"],
+                target=all_links["target"],
+                value=all_links["Value"],
+                color=link_colors
+            )
+        )])
 
-    # Plot Sankey
-    fig = go.Figure(data=[go.Sankey(
-        arrangement="snap",
-        node=dict(
-            pad=1000,
-            thickness=20,
-            line=dict(color="black", width=0.5),
-            label=ordered_labels,
-            color=[color_map.get(label, "lightgray") for label in ordered_labels]
-        ),
-        link=dict(
-            source=all_links["source"],
-            target=all_links["target"],
-            value=all_links["Value"],
-            color=link_colors
-        )
-    )])
+        fig.update_layout(title_text="Realisasi Transaksi Konversi Pinjaman", font_size=12)
 
-    fig.update_layout(title_text="Realisasi Transaksi Konversi Pinjaman", font_size=12)
-
-    # Tampilkan di Streamlit
-    st.plotly_chart(fig, use_container_width=True)
+        # Tampilkan di Streamlit
+        st.plotly_chart(fig, use_container_width=True)
 
     #------bar chart-----
     # ----- Data Manual -----
@@ -151,37 +152,37 @@ with tab1 :
         "IDR (from JPY)": "#bab0ac", # Abu
         "IDR (from USD)": "#ffbe0b"  # Kuning
     }
+    with coltab12:
+        # Plot Bar Chart
+        fig2 = px.bar(
+            st.session_state.df_long_chart,
+            x="Tahun",
+            y="Jumlah",
+            color="Sumber Mata Uang",
+            text="Jumlah",
+            color_discrete_map=color_map,
+            title="Jumlah Loan Berdasarkan Mata Uang Tujuan Konversi"
+        )
 
-    # Plot Bar Chart
-    fig2 = px.bar(
-        st.session_state.df_long_chart,
-        x="Tahun",
-        y="Jumlah",
-        color="Sumber Mata Uang",
-        text="Jumlah",
-        color_discrete_map=color_map,
-        title="Jumlah Loan Berdasarkan Mata Uang Tujuan Konversi"
-    )
+        fig2.update_traces(textposition="outside")
+        fig2.update_layout(
+            xaxis=dict(type='category'), 
+            yaxis=dict(title="Jumlah", range=[0, 50]),
+            barmode="stack",
+            plot_bgcolor='rgba(0,0,0,0)',
+            xaxis_title=None,
+            yaxis_title="Jumlah",
+            legend_title=None,
+            font=dict(size=14)
+        )
+        fig2.update_traces(
+            textposition="inside",
+            insidetextanchor="start",
+            textfont_color="black"
+        )
 
-    fig2.update_traces(textposition="outside")
-    fig2.update_layout(
-        xaxis=dict(type='category'), 
-        yaxis=dict(title="Jumlah", range=[0, 50]),
-        barmode="stack",
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis_title=None,
-        yaxis_title="Jumlah",
-        legend_title=None,
-        font=dict(size=14)
-    )
-    fig2.update_traces(
-        textposition="inside",
-        insidetextanchor="start",
-        textfont_color="black"
-    )
-
-    # Tampilkan chart
-    st.plotly_chart(fig2)
+        # Tampilkan chart
+        st.plotly_chart(fig2,use_container_width=True)
 
 with tab2:
     st.session_state.data_GI_ = baca_data(file_path1, "GI_")
