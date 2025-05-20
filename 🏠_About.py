@@ -5,7 +5,6 @@ st.set_page_config(page_title="Dashboard", layout="wide")
 
 st.title("Dashboard Analisis Konversi Pinjaman")
 
-st.write("Streamlit version:", st.__version__)
 
 st.markdown("""
 Selamat datang di **Dashboard Analisis Konversi Pinjaman**.  
