@@ -1,4 +1,4 @@
-streamlit==1.25.0
+streamlit
 openpyxl
 pandas
 numpy==1.23.5
