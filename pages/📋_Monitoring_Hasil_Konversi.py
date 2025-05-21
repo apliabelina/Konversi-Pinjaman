@@ -322,12 +322,15 @@ with tab2:
                 st.session_state.grouped_df_ef = melted_df_ef.groupby(['year', 'Variable'], as_index=False)['Value'].sum()
                 st.session_state.grouped_df_ef1 = melted_df_ef.groupby(['Variable'], as_index=False)['Value'].sum()
 
-            fig412 = px.bar(
-                st.session_state.grouped_df_ef1, x='Variable', y='Value', color='Variable',
-                color_discrete_map=color_type2, barmode='group',
-                labels={'Value': 'Estimasi Efisiensi', 'Variable': 'Jenis Kewajiban'},
-                title='Efisiensi Berdasarkan Pembayaran Kewajiban Utang'
-            )
+            fig412 = px.pie(
+                    st.session_state.grouped_df_ef1,
+                    names='Variable',
+                    values='Value',
+                    color='Variable',
+                    color_discrete_map=color_type2,
+                    title='Efisiensi Berdasarkan Pembayaran Kewajiban Utang',
+                    hole=0.4  # menjadikannya grafik donat
+                )
             st.plotly_chart(fig412, theme="streamlit", use_container_width=True)
 
             fig411 = px.bar(
@@ -345,12 +348,15 @@ with tab2:
                 st.session_state.grouped_df_ef_curr = ef_curr.groupby(['year', 'Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
                 st.session_state.grouped_df_ef_curr1 = ef_curr.groupby(['Mata Uang Tujuan'], as_index=False)['Total_saving'].sum()
 
-            fig421 = px.bar(
-                st.session_state.grouped_df_ef_curr1, x='Mata Uang Tujuan', y='Total_saving', color='Mata Uang Tujuan',
-                color_discrete_map=color_type1, barmode='group',
-                labels={'Total_saving': 'Estimasi Efisiensi', 'Mata Uang Tujuan': 'Mata Uang Tujuan'},
-                title='Efisiensi Berdasarkan Mata Uang Tujuan'
-            )
+            fig421 = px.pie(
+                    st.session_state.grouped_df_ef_curr1,
+                    names='Mata Uang Tujuan',
+                    values='Total_saving',
+                    color='Mata Uang Tujuan',
+                    color_discrete_map=color_type1,
+                    title='Efisiensi Berdasarkan Mata Uang Tujuan',
+                    hole=0.4  # menjadikan grafik berbentuk donat
+                )
             st.plotly_chart(fig421, theme="streamlit", use_container_width=True)
 
             fig422 = px.bar(
@@ -375,21 +381,21 @@ with tab2:
         )
         st.plotly_chart(fig43, theme="streamlit", use_container_width=True)
 
-    if st.button('Simpan Report'):
-        nama = st.session_state.tanggal_terakhir
-        tipe = '.xlsx'
-        namafile = nama + tipe
+    #if st.button('Simpan Report'):
+        #nama = st.session_state.tanggal_terakhir
+        #tipe = '.xlsx'
+        #namafile = nama + tipe
         
-        with pd.ExcelWriter(namafile) as writer:  # Ubah nama excel
-            st.session_state.merge_all_.to_excel(writer, sheet_name='Data ALL')
-            st.session_state.grouped_df_ef1.to_excel(writer, sheet_name='by jenis')
-            st.session_state.grouped_df_ef.to_excel(writer, sheet_name='by jenis by year')
-            st.session_state.grouped_df_ef_curr1.to_excel(writer, sheet_name='by curr')
-            st.session_state.grouped_df_ef_curr.to_excel(writer, sheet_name='by curr by year')
-            st.session_state.ef_loanid_sorted.to_excel(writer, sheet_name='by loan')
-            st.session_state.data_rekap.to_excel(writer, sheet_name='Rekap Loan Konversi')
+        #with pd.ExcelWriter(namafile) as writer:  # Ubah nama excel
+           # st.session_state.merge_all_.to_excel(writer, sheet_name='Data ALL')
+           # st.session_state.grouped_df_ef1.to_excel(writer, sheet_name='by jenis')
+           # st.session_state.grouped_df_ef.to_excel(writer, sheet_name='by jenis by year')
+           # st.session_state.grouped_df_ef_curr1.to_excel(writer, sheet_name='by curr')
+           # st.session_state.grouped_df_ef_curr.to_excel(writer, sheet_name='by curr by year')
+           # st.session_state.ef_loanid_sorted.to_excel(writer, sheet_name='by loan')
+           # st.session_state.data_rekap.to_excel(writer, sheet_name='Rekap Loan Konversi')
         
-        st.success(f'Report berhasil disimpan: {namafile}')
+        #st.success(f'Report berhasil disimpan: {namafile}')
 
     
 
