@@ -14,6 +14,51 @@ import plotly.io as pio
 
 #set layout
 st.set_page_config(layout="wide", page_title="Monitoring Konversi Pinjaman")
+st.set_page_config(layout="wide", page_title="Konversi Pinjaman")
+st.markdown("""
+    <style>
+    /* Warna latar sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #100E34;
+    }
+
+    /* Menu aktif */
+    [data-testid="stSidebar"] a[aria-current="page"] {
+        background-color: #FFBF18;
+        font-weight: bold;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        display: block;
+        text-decoration: none;
+    }
+
+    /* Teks menu aktif */
+    [data-testid="stSidebar"] a[aria-current="page"] span {
+        color: #262730 !important;
+        font-weight: bold !important;
+    }
+
+    /* Menu tidak aktif (link) */
+    [data-testid="stSidebar"] a:not([aria-current="page"]) {
+        color: #ffffff !important;
+        text-decoration: none;
+    }
+
+    /* Teks menu tidak aktif */
+    [data-testid="stSidebar"] a:not([aria-current="page"]) span {
+        color: #ffffff !important;
+        font-weight: bold !important;
+    }
+
+    /* Hover efek */
+    [data-testid="stSidebar"] a:hover span {
+        color: #ffffff !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.warning("Silakan login terlebih dahulu di halaman Home.")
     st.stop()
@@ -381,21 +426,21 @@ with tab2:
         )
         st.plotly_chart(fig43, theme="streamlit", use_container_width=True)
 
-    #if st.button('Simpan Report'):
-        #nama = st.session_state.tanggal_terakhir
-        #tipe = '.xlsx'
-        #namafile = nama + tipe
+    if st.button('Simpan Report'):
+        nama = st.session_state.tanggal_terakhir
+        tipe = '.xlsx'
+        namafile = nama + tipe
         
-        #with pd.ExcelWriter(namafile) as writer:  # Ubah nama excel
-           # st.session_state.merge_all_.to_excel(writer, sheet_name='Data ALL')
-           # st.session_state.grouped_df_ef1.to_excel(writer, sheet_name='by jenis')
-           # st.session_state.grouped_df_ef.to_excel(writer, sheet_name='by jenis by year')
-           # st.session_state.grouped_df_ef_curr1.to_excel(writer, sheet_name='by curr')
-           # st.session_state.grouped_df_ef_curr.to_excel(writer, sheet_name='by curr by year')
-           # st.session_state.ef_loanid_sorted.to_excel(writer, sheet_name='by loan')
-           # st.session_state.data_rekap.to_excel(writer, sheet_name='Rekap Loan Konversi')
+        with pd.ExcelWriter(namafile) as writer:  # Ubah nama excel
+           st.session_state.merge_all_.to_excel(writer, sheet_name='Data ALL')
+           st.session_state.grouped_df_ef1.to_excel(writer, sheet_name='by jenis')
+           st.session_state.grouped_df_ef.to_excel(writer, sheet_name='by jenis by year')
+           st.session_state.grouped_df_ef_curr1.to_excel(writer, sheet_name='by curr')
+           st.session_state.grouped_df_ef_curr.to_excel(writer, sheet_name='by curr by year')
+           st.session_state.ef_loanid_sorted.to_excel(writer, sheet_name='by loan')
+           #st.session_state.data_rekap.to_excel(writer, sheet_name='Rekap Loan Konversi')
         
-        #st.success(f'Report berhasil disimpan: {namafile}')
+        st.success(f'Report berhasil disimpan: {namafile}')
 
     
 
