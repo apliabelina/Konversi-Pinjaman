@@ -12,3 +12,4 @@ plotly
 altair
 Pillow
 seaborn
+streamlit-echarts>=0.4.0
