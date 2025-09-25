@@ -17,6 +17,53 @@ import plotly.subplots as sp
 import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide", page_title="Analisis Timing Konversi Pinjaman")
+st.set_page_config(layout="wide", page_title="Konversi Pinjaman")
+st.markdown("""
+    <style>
+    /* Warna latar sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #100E34;
+    }
+
+    /* Menu aktif */
+    [data-testid="stSidebar"] a[aria-current="page"] {
+        background-color: #FFBF18;
+        font-weight: bold;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        display: block;
+        text-decoration: none;
+    }
+
+    /* Teks menu aktif */
+    [data-testid="stSidebar"] a[aria-current="page"] span {
+        color: #262730 !important;
+        font-weight: bold !important;
+    }
+
+    /* Menu tidak aktif (link) */
+    [data-testid="stSidebar"] a:not([aria-current="page"]) {
+        color: #ffffff !important;
+        text-decoration: none;
+    }
+
+    /* Teks menu tidak aktif */
+    [data-testid="stSidebar"] a:not([aria-current="page"]) span {
+        color: #ffffff !important;
+        font-weight: bold !important;
+    }
+
+    /* Hover efek */
+    [data-testid="stSidebar"] a:hover span {
+        color: #ffffff !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("Silakan login terlebih dahulu di halaman Home.")
+    st.stop()
 
 color_type1 = {
     'USDIDR': 'Red',  # Purple-like color
