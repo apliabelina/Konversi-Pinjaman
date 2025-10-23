@@ -52,7 +52,7 @@ st.title("Dashboard Analisis Konversi Pinjaman")
 # ==== Credential ====
 USER_CREDENTIALS = {
     "ARP": "1234",
-    "user1": "1234"
+    "Peserta": "123456"
 }
 
 def login():
@@ -133,4 +133,5 @@ else:
 
         st.markdown('</div>', unsafe_allow_html=True)
     #st.write("Gunakan menu di sidebar untuk mengakses halaman lain.")
+
 
