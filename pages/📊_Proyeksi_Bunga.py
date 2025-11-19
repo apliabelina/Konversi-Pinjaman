@@ -16,7 +16,7 @@ from plotly.subplots import make_subplots
 import plotly.subplots as sp
 import matplotlib.pyplot as plt
 
-st.set_page_config(layout="wide", page_title="Analisis Timing Konversi Pinjaman")
+
 st.set_page_config(layout="wide", page_title="Konversi Pinjaman")
 st.markdown("""
     <style>
@@ -138,7 +138,7 @@ if st.session_state.data_file3:
         st.session_state.currency_name = currency_name
 
         data_outstanding1 = data_outstanding1[data_outstanding1.CURR.isin(currency_name)]
-        data_outstanding1 = data_outstanding1[["LOAN_ID", "CURR", "AMT_OUTSTANDING_ORI", "MATURITY_DATE", "REPRESENTATIVE_INTEREST_RATE", "INTEREST_SPREAD", "LOAN_AMOUNT_STATUS", "NAME", "INTEREST_RATE_TYPE"]]
+        data_outstanding1 = data_outstanding1[["LOAN_ID", "CURR", "AMT_OUTSTANDING_ORI", "MATURITY_DATE", "INTEREST_RATE", "INTEREST_SPREAD", "LOAN_AMOUNT_STATUS", "NAME", "INTEREST_RATE_TYPE"]]
         data_outstanding1 = data_outstanding1.sort_values(by=["CURR", "MATURITY_DATE"], ascending=[True, True])
         data_outstanding1 = data_outstanding1.reset_index(drop=True)
         data_outstanding1['MATURITY_DATE'] = data_outstanding1['MATURITY_DATE'].dt.strftime('%d-%b-%Y')
@@ -146,7 +146,7 @@ if st.session_state.data_file3:
         # **PIVOT DATA OUTSTANDING**
         pivot_data = data_outstanding1.groupby("LOAN_ID").agg({
             "AMT_OUTSTANDING_ORI": "sum",  # SUM untuk total outstanding
-            "REPRESENTATIVE_INTEREST_RATE": "mean",  # AVG untuk interest rate
+            "INTEREST_RATE": "mean",  # AVG untuk interest rate
             "INTEREST_SPREAD": "mean"  # AVG untuk spread
         }).reset_index()
 
@@ -164,18 +164,18 @@ if st.session_state.data_file3:
 
             # Salin data untuk diproses
             data_proyeksi1 = data_proyeksi.copy()
-            data_proyeksi1 = data_proyeksi1[["LO_NO", "CREDITOR_NAME", "AMT_ORI", "AMT_USD", "AMT_IDR"]]
+            data_proyeksi1 = data_proyeksi1[["LO_NO", "CREDITOR_NAME", "AMT_ORI", "AMT_IDR"]]
 
             # **HANYA AMBIL DATA PROYEKSI BUNGA**
             data_proyeksi_bunga = data_proyeksi1[
                 (data_proyeksi1.CREDITOR_NAME.isin(creditor_name)) & 
                 ((data_proyeksi.PROJ_TYPE == 'INTEREST') | (data_proyeksi.PROJ_TYPE == 'FEE'))
             ]
-            data_proyeksi_bunga_sum = data_proyeksi_bunga.groupby('LO_NO')[["AMT_ORI", "AMT_USD", "AMT_IDR"]].sum().reset_index()
+            data_proyeksi_bunga_sum = data_proyeksi_bunga.groupby('LO_NO')[["AMT_ORI", "AMT_IDR"]].sum().reset_index()
             data_proyeksi_bunga_sum.rename(columns={"LO_NO": "LOAN_ID"}, inplace=True)
 
             # **MERGE DATA OUTSTANDING DAN PROYEKSI**
             data_final = pivot_data.merge(data_proyeksi_bunga_sum, on="LOAN_ID", how="left")
-            data_final.rename(columns={"AMT_ORI": "PROJ_AMT_ORI", "AMT_USD": "PROJ_AMT_USD", "AMT_IDR": "PROJ_AMT_IDR"}, inplace=True)
+            data_final.rename(columns={"AMT_ORI": "PROJ_AMT_ORI", "AMT_IDR": "PROJ_AMT_IDR"}, inplace=True)
 
             st.write(data_final)
