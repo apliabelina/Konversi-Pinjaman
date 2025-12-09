@@ -99,7 +99,8 @@ def login():
             st.markdown('<div class="card">', unsafe_allow_html=True)
            # HERE = Path(__file__).parent  # folder tempat file .py ini berada
            # img_path = HERE / "Halaman" / "pic1.png"
-            st.image("Halaman\\pic1.png")
+            
+            st.image("\mount\src\konversi-pinjaman\Halaman\pic1.png")
 
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -135,6 +136,7 @@ else:
 
         st.markdown('</div>', unsafe_allow_html=True)
     #st.write("Gunakan menu di sidebar untuk mengakses halaman lain.")
+
 
 
 
