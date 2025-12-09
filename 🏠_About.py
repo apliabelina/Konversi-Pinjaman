@@ -101,10 +101,10 @@ def login():
            # img_path = HERE / "Halaman" / "pic1.png"
             
             #st.image("\mount\src\konversi-pinjaman\Halaman\pic1.png")
-            HERE = Path(__file__).resolve().parent
-            img_path = HERE / "Halaman" / "pic1.png"
+            #HERE = Path(__file__).resolve().parent
+            #img_path = HERE / "Halaman" / "pic1.png"
 
-            st.image(str(img_path))
+            #st.image(str(img_path))
             st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")  # spacing
@@ -135,10 +135,11 @@ else:
                 """)
     with colb:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.image("Halaman\pic1.png")
+        #st.image("Halaman\pic1.png")
 
         st.markdown('</div>', unsafe_allow_html=True)
     #st.write("Gunakan menu di sidebar untuk mengakses halaman lain.")
+
 
 
 
