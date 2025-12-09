@@ -100,8 +100,11 @@ def login():
            # HERE = Path(__file__).parent  # folder tempat file .py ini berada
            # img_path = HERE / "Halaman" / "pic1.png"
             
-            st.image("\mount\src\konversi-pinjaman\Halaman\pic1.png")
+            #st.image("\mount\src\konversi-pinjaman\Halaman\pic1.png")
+            HERE = Path(__file__).resolve().parent
+            img_path = HERE / "Halaman" / "pic1.png"
 
+            st.image(str(img_path))
             st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")  # spacing
@@ -136,6 +139,7 @@ else:
 
         st.markdown('</div>', unsafe_allow_html=True)
     #st.write("Gunakan menu di sidebar untuk mengakses halaman lain.")
+
 
 
 
